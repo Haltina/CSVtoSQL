@@ -1,0 +1,191 @@
+<!--Début test php-->
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+
+        <title>CSV to SQL</title>
+
+        <!--Métadonnées site-->
+        <meta charset="UTF-8">
+        <meta name="auteur" content="Eckmül">
+        <meta name="language" content="french">
+
+    </head>
+
+    <!--Début body, ici les commandes php-->
+    <body>
+
+        <!--Balise titre-->
+        <div id="Titre">
+            
+            <p>html crée par Eckmül</p>
+            <h3><u>CSV to SQL</u></h3>
+
+        </div>
+
+        <p><b><u>Petit programme pour convertir le CSV en SQL</u> :</b></p>
+    
+        <p><u>Etape 1</u> : copiez un fichier csv ici</p>
+
+        <fieldset>
+            <form action="#" method = "post" id="formCSV">
+
+                <div>
+
+                    <label for="csv">
+                        <b><br>Fichier CSV</b> : </br>
+                    </label>
+                    <form action="#" id="formName">
+                        <textarea name="CSV" id="fileCSV" cols="100" rows="10"></textarea>
+                    </form>
+
+                </div>
+
+            </form>
+
+        </fieldset>
+
+        <!--Etape 2 : Nom de la table-->
+        <p><u>Etape 2</u> : Donner un nom à la table</p>
+        <fieldset id="fieldNomTable">
+            <textarea name="table" id="tableNameTextArea" cols="30" rows="1"></textarea>
+        </fieldset>
+
+        <!--Etape 3 : conversion-->
+        <p><u>Etape 3</u> : Convertir</p>
+        <button id="convertir">Convertir</button>
+
+        <!--Etape 4 : Résultat-->
+        <p><u>Etape 4</u> : Résultat</p>
+        <fieldset>
+            <label for="sql">
+                <b><br>Fichier SQL</b> : </br>
+            </label>
+
+            <textarea name="SQL" cols="100" rows="10" id="output"></textarea>
+
+            <style>
+                body{
+                    background-color: #2c2f33;
+                    color: white;
+                }
+                textarea {
+                    background-color: #99aab5;
+                }
+                #convertir {
+                    background-color: #7289da;
+                    border-radius: 10px;
+                }
+                fieldset {
+                    border-radius: 10px;
+                    width: 500px;
+                }
+                #fieldNomTable {
+                    width: 250px;
+                }
+            </style>
+
+            <script>
+
+                // appel des différentes zones de formulaires
+                var convertir = document.getElementById("convertir");
+                var formCSV = document.getElementById("formCSV");
+
+                // la fonction "convertCSV" se déclenche au click sur le bouton convertir
+                convertir.addEventListener("click", convertCSV);
+                
+                // fonction de conversion
+                function convertCSV (e) {
+                    
+                    // stockage du nom
+                    var name = document.getElementById("tableNameTextArea").value;
+                    
+                    // recupération de la saisie CSV
+                    reponse = formCSV.elements["CSV"].value;
+                    console.log(reponse);
+
+                    // gérer les apostrophes
+                    for(var carac = 0; carac < reponse.length; carac++){
+                        reponse = reponse.replace("\'"," ");
+                    }
+                    console.log(reponse);  
+                    // gèrer les fichiers en exports points-virgules
+                    for(var carac = 0; carac < reponse.length; carac++){
+                        reponse = reponse.replace(";",",");
+                    }
+                    console.log(reponse);
+
+                    // définition de la zone textuelle de sortie
+                    sortie = document.getElementById("output");
+                    sortie.innerHTML = "";
+
+                    // début de la création de la table avec son nom
+                    sortie.innerHTML += "/* CREATE TABLE */\nCREATE TABLE \"" + String(name) + "\" (";
+
+                    // écriture des entete                
+                    var ligne = "";
+
+                    // On parcourt la reponse avec un compteur
+                    var carac = 0;
+                    while (reponse[carac] != "\n") {
+
+                        // on détecte les virgules pour rajouter les types de variables aux
+                        if (String(reponse[carac]) == ",") {
+
+                            sortie.innerHTML += " VARCHAR(100)"
+                            sortie.innerHTML += reponse[carac] + "\n";
+                            carac++;
+                        }
+                        else {
+                            sortie.innerHTML += reponse[carac];
+                            carac++;
+                        }
+                    }
+
+                    // On ajoute les types de variables
+                    sortie.innerHTML += " VARCHAR(100));\n/* INSERT QUERY */\nINSERT INTO \"" + String(name) + "\" VALUES\n('";
+                    carac++;
+
+                    // Ecriture des valeurs des lignes
+                    while (carac < reponse.length - 1) {
+
+                        // détection des virgules
+                        if (String(reponse[carac]) == ",") {
+                            carac ++;
+
+                            // détection des secondes virgules qui correspondent à des cases vides
+                            if (String(reponse[carac]) == ",") {
+                                sortie.innerHTML += "\',NULL,\'";
+                                carac++;
+                            }
+
+                            // met des apostrophes avant et après la virgule
+                            else {
+                                sortie.innerHTML += "\',\'";
+                            }
+                        }
+                        // gère les mots
+                        else {
+                            if (reponse[carac] != "\n") {
+                                sortie.innerHTML += reponse[carac];
+                            }
+
+                            // gère les retour à la ligne
+                            else {
+                                sortie.innerHTML += "\'),\n(\'";
+                            }
+                            // incrémentation
+                            carac++;
+                        }
+                    }
+
+                    // sélection de la base pour affichage
+                    sortie.innerHTML += "');\nSELECT * FROM \"" + String(name) + "\";\n";
+                }
+            </script>
+        </fieldset>
+        <p>
+            PS : Le programme ne fonctionne pas sous internet explorer
+        </p>
+    </body>
+</html>
